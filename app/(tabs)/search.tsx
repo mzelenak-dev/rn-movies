@@ -24,12 +24,6 @@ const SearchPage = () => {
     const timeoutId = setTimeout(async () => {
       if(searchQuery) {
         await loadMovies();
-
-        // KNOWN ISSUE: on first input from user into search bar, ${movies} is null which is causing lack
-        // of tracking on initial request from user.
-        if(movies?.length! > 0 && movies?.[0]) {
-          await updateSearchCount(searchQuery, movies[0]); 
-        }
       } else {
         reset();
       }
@@ -37,6 +31,15 @@ const SearchPage = () => {
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery])
+
+  // separated the "await loadMovies" and "updateSearchCount" as they were causing race condition causing
+  // initial user search request to not get logged to AppWrite. This also separates concerns based on
+  // state of searchQuery and movies.
+  useEffect(() => {
+    if(movies?.length > 0 && movies?.[0]) {
+      updateSearchCount(searchQuery, movies[0]); 
+    }
+  }, [movies])
 
   return (
     <View className="flex-1 bg-primary">
