@@ -6,9 +6,11 @@ import useFetch from '@/services/useFetch'
 import { fetchMovies } from '@/services/api'
 import { icons } from '@/constants/icons'
 import SearchBar from '@/components/SearchBar'
+import { updateSearchCount } from '@/services/appwrite'
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  
   const {
     data: movies,
     loading: moviesLoading,
@@ -18,9 +20,16 @@ const SearchPage = () => {
   } = useFetch(() => fetchMovies({ query: searchQuery }), false ); // autoFetch:false for user query search
 
   useEffect(() => {
+    // debounce search input to prevent request overload
     const timeoutId = setTimeout(async () => {
-      if(searchQuery.trim()) {
+      if(searchQuery) {
         await loadMovies();
+
+        // KNOWN ISSUE: on first input from user into search bar, ${movies} is null which is causing lack
+        // of tracking on initial request from user.
+        if(movies?.length! > 0 && movies?.[0]) {
+          await updateSearchCount(searchQuery, movies[0]); 
+        }
       } else {
         reset();
       }
