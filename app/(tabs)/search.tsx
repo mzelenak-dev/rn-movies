@@ -69,6 +69,7 @@ const SearchPage = () => {
                 placeholder='Search movies...'
                 value={searchQuery}
                 onChangeText={(text: string) => setSearchQuery(text)}
+                autoFocus={true}
               />
             </View>
 
